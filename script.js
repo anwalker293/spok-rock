@@ -1,3 +1,5 @@
+import { startConfetti, stopConfetti, removeConfetti } from "./confetti.js";
+
 const playerScoreEl = document.getElementById("playerScore");
 const playerChoiceEl = document.getElementById("playerChoice");
 const computerScoreEl = document.getElementById("computerScore");
@@ -26,6 +28,8 @@ const choices = {
   spock: { name: "Spock", defeats: ["scissors", "rock"] },
 };
 
+let playerScoreNumber = 0;
+let computerScoreNumber = 0;
 let computerChoice = "";
 
 // Reset all 'selected' icons, remove confetti
@@ -33,7 +37,22 @@ function resetSelected() {
   allGameIcons.forEach((icon) => {
     icon.classList.remove("selected");
   });
+  stopConfetti();
+  removeConfetti();
 }
+
+// Reset score & playerChoice/computerChoice
+function resetAll() {
+  playerScoreNumber = 0;
+  computerScoreNumber = 0;
+  playerScoreEl.textContent = playerScoreNumber;
+  computerScoreEl.textContent = computerScoreNumber;
+  playerChoiceEl.textContent = "";
+  computerChoiceEl.textContent = "";
+  resultText.textContent = "";
+  resetSelected();
+}
+window.resetAll = resetAll;
 
 // Random computer choice
 function computerRandomChoice() {
@@ -51,7 +70,7 @@ function computerRandomChoice() {
   }
 }
 
-// Add 'selected' styling and computerChoice
+// Add 'selected' styling & computerChoice
 function displayComputerChoice() {
   switch (computerChoice) {
     case "rock":
@@ -79,17 +98,37 @@ function displayComputerChoice() {
   }
 }
 
+// Check result, increase scores, update resultText
+function updateScore(playerChoice) {
+  if (playerChoice === computerChoice) {
+    resultText.textContent = "It's a tie.";
+  } else {
+    const choice = choices[playerChoice];
+    if (choice.defeats.indexOf(computerChoice) > -1) {
+      startConfetti();
+      resultText.textContent = "You Won!";
+      playerScoreNumber++;
+      playerScoreEl.textContent = playerScoreNumber;
+    } else {
+      resultText.textContent = "You Lost!";
+      computerScoreNumber++;
+      computerScoreEl.textContent = computerScoreNumber;
+    }
+  }
+}
+
 // Call functions to process turn
-function checkResult() {
+function checkResult(playerChoice) {
   resetSelected();
   computerRandomChoice();
   displayComputerChoice();
+  updateScore(playerChoice);
 }
 
 // Passing player selection value and styling icons
 function select(playerChoice) {
-  checkResult();
-  // Add 'selected' styling and playerChoice
+  checkResult(playerChoice);
+  // Add 'selected' styling & playerChoice
   switch (playerChoice) {
     case "rock":
       playerRock.classList.add("selected");
@@ -115,3 +154,7 @@ function select(playerChoice) {
       break;
   }
 }
+window.select = select;
+
+// On startup, set initial values
+resetAll();
